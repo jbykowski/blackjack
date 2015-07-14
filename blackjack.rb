@@ -1,26 +1,32 @@
 require_relative './deck'
 
 class Game
-	
+
+	attr_accessor :player_wins,
+								:dealer_wins
+
 	def intro
+		# Set win counts to 0
+		@player_wins = 0
+		@dealer_wins = 0
 		# welcome to the game
 		puts "Welcome to blackjack!"
 		self.continue?
 	end
-	
+
 	def continue?
 		# prompt to continue or exit game
 		print "Deal new hand? (y/n) "
 		gets.downcase.chomp == "y" ? true : exit
-		self.play		
+		self.play
 	end
-	
+
 	def play
 		# initialize per game variables
 		@dealer_hand = []
 		@player_hand = []
 		@player_done = nil
-		@deck = Deck.new
+		@deck = Shoe.new
 		2.times { @dealer_hand << @deck.deal }
 		2.times { @player_hand << @deck.deal }
 		# send to results
@@ -35,11 +41,11 @@ class Game
 		elsif choice == "s"
 			@player_done = true
 			self.hit("dealer")
-		else	
+		else
 			self.hit_or_stand?
 		end
 	end
-	
+
 	def hit(person)
 		if person == "player"
 			# player hits and sends back to results to let hit again
@@ -54,6 +60,8 @@ class Game
 		end
 	end
 
+	# Display totals, determine winner by card value,
+	# add to win to counters
 	def results
 		# reset totals
 		@dealer_total = 0
@@ -75,7 +83,7 @@ class Game
 		puts "\nPLAYER:\n-------"
 		@player_hand.each do |card|
 			puts "#{card.face} of #{card.suit} (#{card.value})"
-			@player_total += card.value		
+			@player_total += card.value
 		end
 		puts "---> TOTAL (#{@player_total})"
 		print "\nYou have #{@player_total}. "
@@ -83,35 +91,44 @@ class Game
 		if @player_total == 21
 			puts "BLACKJACK!! You win!"
 			puts "*******************************************"
+			self.player_wins += 1
 		elsif @player_total > 21
 			puts "BUST!! You lost."
 			puts "*******************************************"
+			self.dealer_wins += 1
 		elsif @dealer_total == 21
 			puts "Dealer has BLACKJACK. You lost."
 			puts "*******************************************"
+			self.dealer_wins += 1
 		elsif @dealer_total > 21
 			puts "Dealer BUSTS. You win!"
 			puts "*******************************************"
+			self.player_wins += 1
 		elsif (@dealer_total < @player_total && @player_total <= 21) && !(@player_done.nil?)
 			puts "Dealer has #{@dealer_total}. You win!"
 			puts "*******************************************"
+			self.player_wins += 1
 		elsif (@dealer_total > @player_total && @player_total <= 21) && !(@player_done.nil?)
 			puts "Dealer has #{@dealer_total}. You lost."
 			puts "*******************************************"
+			self.dealer_wins += 1
 		elsif @dealer_total == 21 && @player_total == 21
 			puts "Dealer has #{@dealer_total}. You win!"
 			puts "*******************************************"
+			self.player_wins += 1
 		elsif @dealer_total == @player_total && !(@player_done.nil?)
 			puts "Dealer has #{@dealer_total}. You win!"
 			puts "*******************************************"
-
+			self.player_wins += 1
 		else
 			self.hit_or_stand?
 		end
+		puts "Score:"
+		puts "Player: #{player_wins} --- Dealer: #{dealer_wins}"
 		# prompt to start new game or end
 		self.continue?
 	end
-	
+
 end
 
 # start game
